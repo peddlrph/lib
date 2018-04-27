@@ -2,10 +2,11 @@ package smsgateway
 
 import (
 	//"encoding/json"
-	//"fmt"
+	"bufio"
 	"io/ioutil"
-	//"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 func GetMessages(url string) ([]byte, error) {
@@ -36,4 +37,25 @@ func GetMessages(url string) ([]byte, error) {
 	//fmt.Println(string(response))
 	//return res.Body
 	//fmt.Printf("%s", robots)
+}
+
+func WriteMessagesToFile(resp []byte) {
+
+	dateFormat := "2006Jan02-15H"
+
+	currentTime := time.Now()
+
+	outputfile := "./asset/messages/messages" + currentTime.Format(dateFormat) + ".json"
+
+	f, _ := os.Create(outputfile)
+
+	writer := bufio.NewWriter(f)
+
+	defer f.Close()
+
+	_, _ = writer.Write(resp)
+
+	writer.Flush()
+
+	//_ = pie.Render(chart.PNG, writer)
 }
