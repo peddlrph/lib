@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"unicode"
 )
 
 // SetUpMiddleware contains the middleware that applies to every request.
@@ -28,4 +29,17 @@ func IsNumeric(s string) bool {
 func IsPositiveInteger(s string) bool {
 	_, err := strconv.ParseUint(s, 10, 64)
 	return err == nil
+}
+
+func IsMobileNumber(str string) bool {
+	if len(str) != 11 {
+		return false
+	}
+
+	for _, c := range str {
+		if !unicode.IsDigit(c) {
+			return false
+		}
+	}
+	return true
 }
