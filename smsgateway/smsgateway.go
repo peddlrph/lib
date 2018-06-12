@@ -1,42 +1,54 @@
 package smsgateway
 
 import (
-	//"encoding/json"
 	"bufio"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
 )
 
-func GetMessages(url string) ([]byte, error) {
+type Status struct {
+	Timestamp    int  `json:"timestamp"`
+	AirplaneMode bool `json:"is_airplane_mode"`
+	Telephony    Telephony
+	Telephonies  []Telephony
+}
 
-	var response []byte
+type Telephony struct {
+	NetworkRoaming      bool   `json:"is_network_roaming"`
+	SimState            string `json:"sim_state"`
+	NetworkOperatorName string `json:"network_operator_name"`
+	DisplayName         string `json:"display_name"`
+	SimSlot             int    `json:"sim_slot"`
+}
 
-	res, err := http.Get(url)
+func GetMessages(ipaddr string, limit string) ([]byte, error) {
+
+	res, err := http.Get("http://" + ipaddr + ":8080/v1/sms/?limit=" + limit)
 	if err != nil {
-		return response, err
 		//log.Fatal(err)
+		return []byte("error"), err
 	}
+
 	defer res.Body.Close()
-	response, err = ioutil.ReadAll(res.Body)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	response, err := ioutil.ReadAll(res.Body)
+	//fmt.Println(response)
+	if err != nil {
+		log.Fatal(err)
+		return []byte(response), err
+	}
+
+	//response = []byte("Hello")
+
+	fmt.Println("response")
+
 	return response, err
+	//return []byte("res.Body"), err
 
-	//	fmt.Println("Response: ", string(response))
-
-	//mesgs := Item{}
-	//json.Unmarshal([]byte(response), &mesgs)
-
-	// return mesgs
-	//fmt.Println("Mesgs: ", mesgs)
-	//fmt.Println("%T ", mesgs)
-
-	//fmt.Println(string(response))
-	//return res.Body
-	//fmt.Printf("%s", robots)
 }
 
 func WriteMessagesToFile(resp []byte) {
@@ -58,4 +70,30 @@ func WriteMessagesToFile(resp []byte) {
 	writer.Flush()
 
 	//_ = pie.Render(chart.PNG, writer)
+}
+
+func CheckStatus(ip_address string) string {
+
+	res, err := http.Get("http://" + ip_address + ":8080/v1/device/status")
+	if err != nil {
+		//log.Fatal(err)
+		return "Offline"
+	}
+	defer res.Body.Close()
+	response, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		//log.Fatal(err)
+		return "Offline"
+	}
+
+	status := Status{}
+	json.Unmarshal([]byte(response), &status)
+
+	if status.Telephonies[0].SimState == "ready" {
+		return status.Telephonies[0].SimState
+	} else {
+		return "Offline"
+	}
+
+	return "Offline"
 }
