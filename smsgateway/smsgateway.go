@@ -26,9 +26,9 @@ type Telephony struct {
 	SimSlot             int    `json:"sim_slot"`
 }
 
-func GetMessages(ipaddr string, limit string) ([]byte, error) {
+func GetMessages(ipaddr string, limit string, offset string) ([]byte, error) {
 
-	res, err := http.Get("http://" + ipaddr + ":8080/v1/sms/?limit=" + limit)
+	res, err := http.Get("http://" + ipaddr + ":8080/v1/sms/?limit=" + limit + "&offset=" + offset)
 	if err != nil {
 		//log.Fatal(err)
 		return []byte("error"), err
